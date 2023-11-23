@@ -1,4 +1,4 @@
-import { Schema, model, connect } from 'mongoose';
+// import { Schema, model, connect } from 'mongoose';
 
 export type FullName = {
   firstName: string;
