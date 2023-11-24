@@ -33,6 +33,10 @@ const userSchema = new Schema<TUser, UserModel, UserMethods>({
   isActive: { type: Boolean, required: true },
   hobbies: { type: [String], required: true },
   address: fullAddressSchema,
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 //pre save middleware /hook
@@ -49,8 +53,26 @@ userSchema.pre('save', async function (next) {
 });
 
 //post save middleware / hook
-userSchema.post('save', function () {
-  console.log(this, 'post hook: saved the data');
+userSchema.post('save', function (doc, next) {
+  doc.password = '';
+  // console.log(this, 'post hook: saved the data');
+  next();
+});
+
+// query middleware
+userSchema.pre('find', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
+
+userSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+  next();
+});
+
+userSchema.pre('findOne', function (next) {
+  this.findOne({ isDeleted: { $ne: true } });
+  next();
 });
 
 userSchema.methods.isUserExists = async function (id: number) {
