@@ -2,6 +2,7 @@ import { Schema, model } from 'mongoose';
 import {
   TFullAddress,
   TFullName,
+  TOrders,
   TUser,
   UserMethods,
   UserModel,
@@ -18,6 +19,11 @@ const fullAddressSchema = new Schema<TFullAddress>({
   street: { type: String, required: true },
   city: { type: String, required: true },
   country: { type: String, required: true },
+});
+const ordersSchema = new Schema<TOrders>({
+  productName: { type: String },
+  price: { type: Number },
+  quantity: { type: Number },
 });
 
 const userSchema = new Schema<TUser, UserModel, UserMethods>({
@@ -37,6 +43,7 @@ const userSchema = new Schema<TUser, UserModel, UserMethods>({
     type: Boolean,
     default: false,
   },
+  orders: [ordersSchema],
 });
 
 //pre save middleware /hook

@@ -1,5 +1,5 @@
 import { User } from '../user.model';
-import { TUser } from './user.interface';
+import { TOrders, TUser } from './user.interface';
 
 const createUserIntoDB = async (userData: TUser) => {
   // built in static method
@@ -40,10 +40,39 @@ const deleteUserFromDB = async (id: number) => {
   return result;
 };
 
+const addProductToOrders = async (userId: number, order: TOrders) => {
+  try {
+    const user = await User.findOne({ userId });
+
+    if (!user) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+
+    // Check if the 'orders' property already exists for the user
+    if (!user.orders) {
+      user.orders = [] as TOrders[];
+    }
+
+    const result = await User.updateOne({ userId }, [
+      {
+        $set: {
+          orders: {
+            $concatArrays: ['$orders', [order]],
+          },
+        },
+      },
+    ]);
+    return result;
+  } catch (error: any) {
+    throw new Error(`Failed to add product to orders: ${error.message}`);
+  }
+};
+
 export const UserServices = {
   createUserIntoDB,
   getAllUsersFromDB,
   getSingleUserFromDB,
   deleteUserFromDB,
   updateUserFromDB,
+  addProductToOrders,
 };

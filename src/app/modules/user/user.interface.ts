@@ -12,6 +12,11 @@ export type TFullAddress = {
   city: string;
   country: string;
 };
+export type TOrders = {
+  productName: string;
+  price: number;
+  quantity: number;
+};
 
 export type TUser = {
   userId: number;
@@ -24,6 +29,7 @@ export type TUser = {
   hobbies: string[];
   address: TFullAddress;
   isDeleted: boolean;
+  orders?: TOrders[];
 };
 
 export type UserMethods = {

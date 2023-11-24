@@ -45,10 +45,14 @@ const getSingleUser = async (req: Request, res: Response) => {
     const numaricUserId = parseInt(userId);
     const result = await UserServices.getSingleUserFromDB(numaricUserId);
 
-    if (!result) {
+    if (!result || result.length === 0) {
       return res.status(404).json({
         success: false,
-        message: `User Data of id:${numaricUserId} is not found `,
+        message: 'User not found',
+        error: {
+          code: 404,
+          description: 'User not found!',
+        },
       });
     }
     res.status(200).json({
@@ -71,6 +75,14 @@ const getUpdateUsers = async (req: Request, res: Response) => {
     const userData = req.body;
     const numaricUserId = parseInt(userId);
     const result = await UserServices.updateUserFromDB(numaricUserId, userData);
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: `User Data  is not found `,
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: 'Users updated successfully ',
@@ -111,10 +123,43 @@ const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
+const addProductToOrder = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const orderData = req.body;
+
+    const numericUserId = parseInt(userId);
+    const result = await UserServices.addProductToOrders(
+      numericUserId,
+      orderData,
+    );
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: `User Data of id:${numericUserId} is not found `,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Product added to orders successfully ',
+      data: result.orders,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: err.message || 'something went wrong',
+      error: err,
+    });
+  }
+};
+
 export const UserControllers = {
   createUser,
   getAllUsers,
   getSingleUser,
   getUpdateUsers,
   deleteUser,
+  addProductToOrder,
 };

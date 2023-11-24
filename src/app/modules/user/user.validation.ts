@@ -12,6 +12,12 @@ const FullAddressValidationSchema = z.object({
   country: z.string().min(1).max(255),
 });
 
+const OrderValidationSchema = z.object({
+  productName: z.string().min(1).max(255),
+  price: z.number().min(0),
+  quantity: z.number().min(1),
+});
+
 // Define the User schema using the nested schemas
 const UserValidationSchema = z.object({
   userId: z.number(),
@@ -23,7 +29,8 @@ const UserValidationSchema = z.object({
   isActive: z.boolean(),
   hobbies: z.array(z.string().min(1).max(255)),
   address: FullAddressValidationSchema,
-  isDeleted: z.boolean(),
+  isDeleted: z.boolean().optional(),
+  orders: z.array(OrderValidationSchema).optional(),
 });
 
 export default UserValidationSchema;
