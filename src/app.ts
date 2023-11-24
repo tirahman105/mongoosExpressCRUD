@@ -12,7 +12,7 @@ app.use(cors());
 app.use('/api/users', UserRoutes);
 
 const getAController = (req: Request, res: Response) => {
-  res.send('Hello World!');
+  res.send('Mongoos Express CRUD server running!');
 };
 
 app.get('/', getAController);

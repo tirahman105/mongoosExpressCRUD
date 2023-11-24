@@ -1,19 +1,25 @@
 import { Schema, model } from 'mongoose';
-import { FullAddress, FullName, User } from './user/user.interface';
+import {
+  TFullAddress,
+  TFullName,
+  TUser,
+  UserMethods,
+  UserModel,
+} from './user/user.interface';
 
-const fullNameSchema = new Schema<FullName>({
+const fullNameSchema = new Schema<TFullName>({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
 });
 
-const fullAddressSchema = new Schema<FullAddress>({
+const fullAddressSchema = new Schema<TFullAddress>({
   street: { type: String, required: true },
   city: { type: String, required: true },
   country: { type: String, required: true },
 });
 
-const userSchema = new Schema<User>({
-  userId: { type: Number, required: true },
+const userSchema = new Schema<TUser, UserModel, UserMethods>({
+  userId: { type: Number, required: [true, 'ID is required'], unique: true },
   username: {
     type: String,
     required: true,
@@ -21,10 +27,15 @@ const userSchema = new Schema<User>({
   password: { type: String, required: true },
   fullName: fullNameSchema,
   age: { type: Number, required: true },
-  email: { type: String, required: true },
+  email: { type: String, required: [true, 'ID is required'], unique: true },
   isActive: { type: Boolean, required: true },
   hobbies: { type: [String], required: true },
   address: fullAddressSchema,
 });
 
-export const UserModel = model<User>('User', userSchema);
+userSchema.methods.isUserExists = async function (id: number) {
+  const existingUser = await User.findOne({ userId: id });
+  return existingUser;
+};
+
+export const User = model<TUser, UserModel>('User', userSchema);

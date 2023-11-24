@@ -17,10 +17,10 @@ const createUser = async (req: Request, res: Response) => {
       message: 'User created successfully ',
       data: result,
     });
-  } catch (err) {
+  } catch (err: any) {
     res.status(500).json({
       success: false,
-      message: 'something went wrong',
+      message: err.message || 'something went wrong',
       error: err,
     });
   }
@@ -42,10 +42,18 @@ const getAllUsers = async (req: Request, res: Response) => {
 const getSingleUser = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const result = await UserServices.getSingleUserFromDB(userId);
+    const numaricUserId = parseInt(userId);
+    const result = await UserServices.getSingleUserFromDB(numaricUserId);
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: `User Data of id:${numaricUserId} is not found `,
+      });
+    }
     res.status(200).json({
       success: true,
-      message: 'Single User are retrieved successfully ',
+      message: 'Single User fetched successfully! ',
       data: result,
     });
   } catch (err) {
