@@ -6,6 +6,8 @@ import {
   UserMethods,
   UserModel,
 } from './user/user.interface';
+import bcrypt from 'bcrypt';
+import config from '../config';
 
 const fullNameSchema = new Schema<TFullName>({
   firstName: { type: String, required: true },
@@ -31,6 +33,24 @@ const userSchema = new Schema<TUser, UserModel, UserMethods>({
   isActive: { type: Boolean, required: true },
   hobbies: { type: [String], required: true },
   address: fullAddressSchema,
+});
+
+//pre save middleware /hook
+userSchema.pre('save', async function (next) {
+  // console.log(this, 'pre hook: will save data');
+  // hashing password and save into DB
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
+  const user = this;
+  user.password = await bcrypt.hash(
+    user.password,
+    Number(config.bcrypt_salt_rounds),
+  );
+  next();
+});
+
+//post save middleware / hook
+userSchema.post('save', function () {
+  console.log(this, 'post hook: saved the data');
 });
 
 userSchema.methods.isUserExists = async function (id: number) {
