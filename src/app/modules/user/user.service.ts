@@ -131,7 +131,7 @@ const addProductToOrders = async (userId: number, order: TOrders) => {
 const totalPriceOfSingleUserOrders = async (userId: number) => {
   const existingUser = await User.findOne({ userId });
   if (!existingUser) {
-    throw new Error('User ID not exists');
+    throw new Error('User not found');
   }
 
   const result = await User.aggregate([
