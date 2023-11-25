@@ -33,6 +33,7 @@ export type TUser = {
 };
 
 export type UserMethods = {
+  // eslint-disable-next-line no-unused-vars
   isUserExists(userId: number): Promise<TUser | null>;
 };
 

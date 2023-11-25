@@ -177,6 +177,30 @@ const addProductToOrder = async (req: Request, res: Response) => {
   }
 };
 
+const totalPriceOfSingleUserOrdersController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req.params;
+    const numericUserId = parseInt(userId);
+    const result =
+      await UserServices.totalPriceOfSingleUserOrders(numericUserId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Total price of orders fetched successfully',
+      data: result,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: err.message || 'Something went wrong',
+      error: err,
+    });
+  }
+};
+
 export const UserControllers = {
   createUser,
   getAllUsers,
@@ -185,4 +209,5 @@ export const UserControllers = {
   getUpdateUsers,
   deleteUser,
   addProductToOrder,
+  totalPriceOfSingleUserOrdersController,
 };

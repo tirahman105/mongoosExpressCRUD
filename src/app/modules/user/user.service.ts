@@ -14,7 +14,8 @@ const createUserIntoDB = async (userData: TUser) => {
 
   const result = await user.save(); //   built in instance method
 
-  const { password, ...withOutPassword } = result.toObject();
+  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+  const { password: string, ...withOutPassword } = result.toObject();
   const responseData = {
     data: withOutPassword,
   };
@@ -126,6 +127,40 @@ const addProductToOrders = async (userId: number, order: TOrders) => {
   }
 };
 
+// cost of single user orders
+const totalPriceOfSingleUserOrders = async (userId: number) => {
+  const existingUser = await User.findOne({ userId });
+  if (!existingUser) {
+    throw new Error('User ID not exists');
+  }
+
+  const result = await User.aggregate([
+    { $match: { userId } },
+    { $unwind: '$orders' },
+    {
+      $addFields: {
+        'orders.totalPrice': {
+          $multiply: ['$orders.price', '$orders.quantity'],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalPrice: { $sum: '$orders.totalPrice' },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        totalPrice: 1,
+      },
+    },
+  ]);
+
+  return result;
+};
+
 export const UserServices = {
   createUserIntoDB,
   getAllUsersFromDB,
@@ -134,4 +169,5 @@ export const UserServices = {
   deleteUserFromDB,
   updateUserFromDB,
   addProductToOrders,
+  totalPriceOfSingleUserOrders,
 };
