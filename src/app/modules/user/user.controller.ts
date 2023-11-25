@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
 import { UserServices } from './user.service';
 
@@ -64,6 +65,26 @@ const getSingleUser = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: err.message || 'something went wrong',
+      error: err,
+    });
+  }
+};
+
+const getAllOrdersForUser = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const numericUserId = parseInt(userId);
+    const orders = await UserServices.getAllOrdersForUser(numericUserId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Orders fetched successfully',
+      data: orders,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: err.message || 'Something went wrong',
       error: err,
     });
   }
@@ -144,8 +165,9 @@ const addProductToOrder = async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: 'Product added to orders successfully ',
-      data: result.orders,
+      data: result,
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     res.status(500).json({
       success: false,
@@ -159,6 +181,7 @@ export const UserControllers = {
   createUser,
   getAllUsers,
   getSingleUser,
+  getAllOrdersForUser,
   getUpdateUsers,
   deleteUser,
   addProductToOrder,

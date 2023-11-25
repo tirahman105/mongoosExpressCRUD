@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { User } from '../user.model';
 import { TOrders, TUser } from './user.interface';
 
@@ -12,25 +13,82 @@ const createUserIntoDB = async (userData: TUser) => {
   }
 
   const result = await user.save(); //   built in instance method
-  return result;
+
+  const { password, ...withOutPassword } = result.toObject();
+  const responseData = {
+    data: withOutPassword,
+  };
+  return responseData;
 };
 
+// const getAllUsersFromDB = async () => {
+//   const result = await User.find();
+//   return result;
+// };
+
 const getAllUsersFromDB = async () => {
-  const result = await User.find();
-  return result;
+  try {
+    const result = await User.aggregate([
+      {
+        $project: {
+          username: 1,
+          fullName: 1,
+          age: 1,
+          email: 1,
+          address: 1,
+        },
+      },
+    ]);
+    return result;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: `Failed to fetch users: ${error.message}`,
+      error: error,
+    };
+  }
 };
 
 const getSingleUserFromDB = async (id: number) => {
   // const result = await User.findOne({ userId: id });
 
-  const result = await User.aggregate([{ $match: { userId: id } }]);
+  const result = await User.aggregate([
+    { $match: { userId: id } },
+    {
+      $project: {
+        password: 0,
+      },
+    },
+  ]);
+
+  if (!result || result.length === 0) {
+    throw new Error(`User with id ${id} not found`);
+  }
+
   return result;
+};
+
+const getAllOrdersForUser = async (userId: number) => {
+  try {
+    const user = await User.findOne({ userId });
+
+    if (!user) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+
+    const orders = user.orders || [];
+
+    return orders;
+  } catch (error: any) {
+    throw new Error(`Failed to get orders for the user: ${error.message}`);
+  }
 };
 
 const updateUserFromDB = async (id: number, userData: TUser) => {
   const result = await User.findOneAndUpdate({ userId: id }, userData, {
     new: true,
     runValidators: true,
+    select: { password: 0 },
   });
   return result;
 };
@@ -72,6 +130,7 @@ export const UserServices = {
   createUserIntoDB,
   getAllUsersFromDB,
   getSingleUserFromDB,
+  getAllOrdersForUser,
   deleteUserFromDB,
   updateUserFromDB,
   addProductToOrders,
