@@ -29,7 +29,6 @@ const UserValidationSchema = z.object({
   isActive: z.boolean(),
   hobbies: z.array(z.string().min(1).max(255)),
   address: FullAddressValidationSchema,
-  isDeleted: z.boolean(),
   orders: z.array(OrderValidationSchema).optional(),
 });
 

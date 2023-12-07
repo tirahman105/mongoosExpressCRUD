@@ -39,10 +39,6 @@ const userSchema = new Schema<TUser, UserModel, UserMethods>({
   isActive: { type: Boolean, required: true },
   hobbies: { type: [String], required: true },
   address: fullAddressSchema,
-  isDeleted: {
-    type: Boolean,
-    default: false,
-  },
   orders: [ordersSchema],
 });
 
@@ -81,6 +77,15 @@ userSchema.pre('findOne', function (next) {
   this.findOne({ isDeleted: { $ne: true } });
   next();
 });
+
+userSchema.methods.toJSON = function () {
+  const userObject = this.toObject();
+  delete userObject.password;
+  delete userObject._id;
+  delete userObject.orders;
+  delete userObject.__v;
+  return userObject;
+};
 
 userSchema.methods.isUserExists = async function (id: number) {
   const existingUser = await User.findOne({ userId: id });

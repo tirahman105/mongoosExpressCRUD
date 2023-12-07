@@ -3,35 +3,23 @@ import { User } from '../user.model';
 import { TOrders, TUser } from './user.interface';
 
 const createUserIntoDB = async (userData: TUser) => {
-  // built in static method
-  //   const result = await UserModel.create(user);
+  // const result = await User.create(user);
 
-  const user = new User(userData); // create an instance
-
+  const user = new User(userData);
   if (await user.isUserExists(userData.userId)) {
     throw new Error('User already exists');
   }
 
-  const result = await user.save(); //   built in instance method
-
-  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-  const { password: string, ...withOutPassword } = result.toObject();
-  const responseData = {
-    data: withOutPassword,
-  };
-  return responseData;
+  const result = await user.save();
+  return result;
 };
-
-// const getAllUsersFromDB = async () => {
-//   const result = await User.find();
-//   return result;
-// };
 
 const getAllUsersFromDB = async () => {
   try {
     const result = await User.aggregate([
       {
         $project: {
+          _id: 0,
           username: 1,
           fullName: 1,
           age: 1,
@@ -58,6 +46,7 @@ const getSingleUserFromDB = async (id: number) => {
     {
       $project: {
         password: 0,
+        orders: 0,
       },
     },
   ]);
@@ -79,7 +68,7 @@ const getAllOrdersForUser = async (userId: number) => {
 
     const orders = user.orders || [];
 
-    return orders;
+    return { orders };
   } catch (error: any) {
     throw new Error(`Failed to get orders for the user: ${error.message}`);
   }
@@ -94,37 +83,54 @@ const updateUserFromDB = async (id: number, userData: TUser) => {
   return result;
 };
 
-const deleteUserFromDB = async (id: number) => {
-  const result = await User.updateOne({ userId: id }, { isDeleted: true });
+// const deleteUserFromDB = async (id: number) => {
+//   const result = await User.updateOne({ userId: id }, { isDeleted: true });
+//   return result;
+// };
+
+// Delete user
+const deleteUserFromDB = async (userId: number) => {
+  const result = await User.findOneAndDelete({ userId });
+
+  if (!result) {
+    throw {
+      status: 404,
+      message: 'User not found',
+      error: {
+        code: 404,
+        description: 'User not found!',
+      },
+    };
+  }
+
   return result;
 };
 
-const addProductToOrders = async (userId: number, order: TOrders) => {
-  try {
-    const user = await User.findOne({ userId });
+const addProductToOrders = async (
+  userId: number,
+  orderData: TOrders,
+): Promise<TUser | null> => {
+  const user = await User.findOne({ userId });
 
-    if (!user) {
-      throw new Error(`User with id ${userId} not found`);
-    }
-
-    // Check if the 'orders' property already exists for the user
-    if (!user.orders) {
-      user.orders = [] as TOrders[];
-    }
-
-    const result = await User.updateOne({ userId }, [
-      {
-        $set: {
-          orders: {
-            $concatArrays: ['$orders', [order]],
-          },
-        },
+  if (!user) {
+    throw {
+      status: 404,
+      message: 'User not found',
+      error: {
+        code: 404,
+        description: 'User not found!',
       },
-    ]);
-    return result;
-  } catch (error: any) {
-    throw new Error(`Failed to add product to orders: ${error.message}`);
+    };
   }
+
+  if (!user.orders) {
+    user.orders = [];
+  }
+
+  user.orders.push({ ...orderData });
+
+  const result = await user.save();
+  return result;
 };
 
 // cost of single user orders
@@ -158,7 +164,9 @@ const totalPriceOfSingleUserOrders = async (userId: number) => {
     },
   ]);
 
-  return result;
+  return {
+    data: result[0],
+  };
 };
 
 export const UserServices = {
